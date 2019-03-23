@@ -74,7 +74,7 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def trace_path(path):
+def tracePath(path):
     """
     Returns list of actions from path.
 
@@ -107,7 +107,7 @@ def depthFirstSearch(problem):
         path = fringe.pop()
         curr_position = path[-1][0]
         if problem.isGoalState(curr_position):
-            return trace_path(path)
+            return tracePath(path)
         priority -= 1
         for child_node in problem.getSuccessors(curr_position):
             if child_node[0] not in [p[0] for p in path]:
@@ -119,13 +119,49 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    priority = 0
+    fringe.push([tuple([problem.getStartState(), ])], priority)
+
+    while fringe.isEmpty != 1:
+        path = fringe.pop()
+        curr_position = path[-1][0]
+        if problem.isGoalState(curr_position):
+            return tracePath(path)
+        priority += 1
+        for child_node in problem.getSuccessors(curr_position):
+            if child_node[0] not in [p[0] for p in path]:
+                new_path = path + [child_node]
+                fringe.push(new_path, priority)
+    return []
+
+
+def getPathCost(path):
+    """
+    Returns the total cost of the path.
+
+    Args:
+      path: list of states (position, direction, depth)
+    """
+    return sum([p[2] for p in path[1:]])
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    fringe.push([tuple([problem.getStartState(), ])], 0)
+
+    while fringe.isEmpty != 1:
+        path = fringe.pop()
+        curr_position = path[-1][0]
+        if problem.isGoalState(curr_position):
+            return tracePath(path)
+        for child_node in problem.getSuccessors(curr_position):
+            if child_node[0] not in [p[0] for p in path]:
+                new_path = path + [child_node]
+                fringe.push(new_path, getPathCost(new_path))
+    return []
 
 
 def nullHeuristic(state, problem=None):
@@ -139,7 +175,20 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    fringe.push([tuple([problem.getStartState(), ])], 0)
+
+    while fringe.isEmpty != 1:
+        path = fringe.pop()
+        curr_position = path[-1][0]
+        if problem.isGoalState(curr_position):
+            return tracePath(path)
+        for child_node in problem.getSuccessors(curr_position):
+            if child_node[0] not in [p[0] for p in path]:
+                new_path = path + [child_node]
+                fringe.push(new_path, getPathCost(new_path) +
+                            util.manhattanDistance(child_node[0], problem.goal))
+    return []
 
 
 # Abbreviations
