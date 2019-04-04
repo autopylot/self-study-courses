@@ -74,14 +74,26 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def tracePath(path):
-    """
-    Returns list of actions from path.
+class Path:
+    def __init__(self, start, actions, cost):
+        self.start = start
+        self.actions = actions
+        self.cost = cost
 
-    Args:
-      path: list of states (position, direction, depth)
-    """
-    return [p[1] for p in path[1:]]
+
+def graphSearch(problem, fringe, priorityFn):
+    closed = set()
+    while not fringe.isEmpty():
+        currentPath = fringe.pop()
+        if problem.isGoalState(currentPath.start):
+            return currentPath.actions
+        if not currentPath.start in closed:
+            closed.add(currentPath.start)
+            for child in problem.getSuccessors(currentPath.start):
+                new_actions = currentPath.actions + [child[1]]
+                new_cost = currentPath.cost + child[2]
+                new_path = Path(child[0], new_actions, new_cost)
+                fringe.push(new_path, next(priorityFn(new_path, problem)))
 
 
 def depthFirstSearch(problem):
@@ -100,73 +112,47 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
-    priority = 0
-    fringe.push([tuple([tuple(problem.getStartState())])], priority)
+    fringe.push(Path(problem.getStartState(), [], 0), 0)
 
-    while fringe.isEmpty != 1:
-        path = fringe.pop()
-        curr_position = path[-1][0]
-        if problem.isGoalState(curr_position):
-            return tracePath(path)
-        priority -= 1
-        for child_node in problem.getSuccessors(curr_position):
-            if child_node[0] not in [p[0] for p in path]:
-                new_path = path + [child_node]
-                fringe.push(new_path, priority)
-    return []
+    def priorityFn(path, aux):
+        priority = 0
+        while 1:
+            priority -= 1
+            yield priority
+
+    return graphSearch(problem, fringe, priorityFn)
 
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
-    priority = 0
-    fringe.push([tuple([problem.getStartState(), ])], priority)
+    fringe.push(Path(problem.getStartState(), [], 0), 0)
 
-    while fringe.isEmpty != 1:
-        path = fringe.pop()
-        curr_position = path[-1][0]
-        if problem.isGoalState(curr_position):
-            return tracePath(path)
-        priority += 1
-        for child_node in problem.getSuccessors(curr_position):
-            if child_node[0] not in [p[0] for p in path]:
-                new_path = path + [child_node]
-                fringe.push(new_path, priority)
-    return []
+    def priorityFn(path, aux):
+        priority = 0
+        while 1:
+            priority += 1
+            yield priority
 
-
-def getPathCost(path):
-    """
-    Returns the total cost of the path.
-
-    Args:
-      path: list of states (position, direction, depth)
-    """
-    return sum([p[2] for p in path[1:]])
+    return graphSearch(problem, fringe, priorityFn)
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
-    fringe.push([tuple([problem.getStartState(), ])], 0)
+    fringe.push(Path(problem.getStartState(), [], 0), 0)
 
-    while fringe.isEmpty != 1:
-        path = fringe.pop()
-        curr_position = path[-1][0]
-        if problem.isGoalState(curr_position):
-            return tracePath(path)
-        for child_node in problem.getSuccessors(curr_position):
-            if child_node[0] not in [p[0] for p in path]:
-                new_path = path + [child_node]
-                fringe.push(new_path, getPathCost(new_path))
-    return []
+    def priorityFn(path, aux):
+        yield path.cost
+
+    return graphSearch(problem, fringe, priorityFn)
 
 
 def nullHeuristic(state, problem=None):
     """
-    A heuristic function estimates the cost from the current state to the nearest
+    A heuristic function estimates the cost from the start state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
     return 0
@@ -176,19 +162,12 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
-    fringe.push([tuple([problem.getStartState(), ])], 0)
+    fringe.push(Path(problem.getStartState(), [], 0), 0)
 
-    while fringe.isEmpty != 1:
-        path = fringe.pop()
-        curr_position = path[-1][0]
-        if problem.isGoalState(curr_position):
-            return tracePath(path)
-        for child_node in problem.getSuccessors(curr_position):
-            if child_node[0] not in [p[0] for p in path]:
-                new_path = path + [child_node]
-                fringe.push(new_path, getPathCost(new_path) +
-                            util.manhattanDistance(child_node[0], problem.goal))
-    return []
+    def priorityFn(path, aux):
+        yield path.cost + util.manhattanDistance(path.start, aux.goal)
+
+    return graphSearch(problem, fringe, priorityFn)
 
 
 # Abbreviations
