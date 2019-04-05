@@ -165,7 +165,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     fringe.push(Path(problem.getStartState(), [], 0), 0)
 
     def priorityFn(path, aux):
-        yield path.cost + util.manhattanDistance(path.start, aux.goal)
+        yield path.cost + heuristic(path.start, aux)
 
     return graphSearch(problem, fringe, priorityFn)
 
